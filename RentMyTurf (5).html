@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RentMyTurf</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --green:#1D9E75;--green2:#0F6E56;--green-light:#E1F5EE;--green-dark:#085041;
+  --amber:#EF9F27;--amber-light:#FAEEDA;--amber-dark:#633806;
+  --coral:#D85A30;--coral-light:#FAECE7;
+  --surface:#fff;--bg:#f4f3ee;--text:#111110;--muted:#72716c;
+  --border:rgba(0,0,0,.09);--border2:rgba(0,0,0,.15);
+  --r:16px;--r-sm:10px;
+}
+html,body{height:100%;background:#e8e7e0;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;min-width:320px;}
+.phone{width:390px;height:min(844px,100dvh);background:var(--bg);border-radius:44px;border:2px solid rgba(0,0,0,.12);overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.22),0 4px 16px rgba(0,0,0,.12);}
+.pages{flex:1;overflow:hidden;position:relative;min-height:0;}
+.page{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .25s,transform .25s;}
+.page.hidden{opacity:0;pointer-events:none;transform:translateY(8px);}
+
+/* bottom nav */
+.bottom-nav{display:flex;background:var(--surface);border-top:.5px solid var(--border2);flex-shrink:0;height:56px;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;color:var(--muted);transition:color .2s;letter-spacing:.3px;}
+.nav-btn i{font-size:22px;transition:transform .2s;}
+.nav-btn.active{color:var(--green);}
+.nav-btn.active i{transform:scale(1.1);}
+.nav-burger{flex:0 0 60px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;}
+.nav-burger .burger-pill{width:40px;height:40px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(29,158,117,.4);transition:transform .2s;}
+.nav-burger:active .burger-pill{transform:scale(.91);}
+.nav-burger .burger-pill i{font-size:20px;color:#fff;}
+
+@media(max-width:375px){
+  body{align-items:flex-start;}
+  .phone{width:100vw;min-width:320px;height:100dvh;border-radius:0;box-shadow:none;border:none;}
+  .bottom-nav{height:50px;}
+  .nav-btn{font-size:9px;}
+  .nav-burger .burger-pill{width:36px;height:36px;}
+}
+
+/* ══ REELS ══ */
+.reels-wrap{flex:1;overflow:hidden;position:relative;}
+.reels-scroll{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;}
+.reels-scroll::-webkit-scrollbar{display:none;}
+.reel{width:100%;height:100%;flex-shrink:0;scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;}
+
+/* photo carousel inside each reel */
+.reel-photos{position:absolute;inset:0;display:flex;overflow-x:scroll;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+.reel-photos::-webkit-scrollbar{display:none;}
+.reel-photo-slide{min-width:100%;height:100%;flex-shrink:0;scroll-snap-align:start;position:relative;}
+.reel-photo-slide img{width:100%;height:100%;object-fit:cover;display:block;}
+.reel-photo-dots{position:absolute;top:54px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:20;}
+.reel-photo-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.45);transition:background .2s,transform .2s;}
+.reel-photo-dot.active{background:#fff;transform:scale(1.25);}
+
+/* per-slide dark gradient so info always readable */
+.reel-photo-slide::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.04) 45%,rgba(0,0,0,.35) 100%);}
+
+/* fallback coloured canvas (used while images load) */
+.reel-canvas-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.reel-emoji-bg{font-size:160px;opacity:.12;user-select:none;pointer-events:none;filter:blur(2px);position:absolute;}
+.reel-grid-pattern{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 60px),repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 1px,transparent 1px 60px);}
+
+.reel-top{position:absolute;top:0;left:0;right:0;z-index:100;padding:14px 16px 10px;display:flex;justify-content:space-between;align-items:center;}
+.reel-logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;letter-spacing:-.5px;cursor:pointer;text-shadow:0 1px 6px rgba(0,0,0,.5);}
+.reel-tabs{display:flex;gap:6px;}
+.reel-tab{font-size:11px;font-weight:500;color:#fff;padding:5px 11px;border-radius:20px;border:.5px solid rgba(255,255,255,.45);cursor:pointer;transition:background .2s,color .2s;}
+.reel-tab.active{background:#fff;color:var(--text);}
+.reel-actions{position:absolute;right:14px;bottom:130px;display:flex;flex-direction:column;gap:20px;align-items:center;z-index:10;}
+.reel-act{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
+.reel-act i{font-size:30px;color:#fff;transition:transform .15s,color .15s;}
+.reel-act:active i{transform:scale(1.35);}
+.reel-act span{font-size:11px;color:#fff;font-weight:500;}
+.reel-act.liked i{color:#ff4060;}
+.reel-act.saved i{color:var(--amber);}
+.reel-info{position:absolute;left:16px;right:90px;bottom:120px;z-index:10;}
+.reel-info h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:6px;line-height:1.2;}
+.reel-badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;}
+.badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;border:.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;backdrop-filter:blur(6px);}
+.badge.green{background:var(--green);border-color:transparent;}
+.badge.amber{background:var(--amber);border-color:transparent;color:#fff;}
+.reel-desc{font-size:12px;color:rgba(255,255,255,.78);line-height:1.45;}
+.reel-cta{position:absolute;left:16px;right:16px;bottom:68px;z-index:10;display:flex;gap:8px;}
+.btn-ghost{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border:.5px solid rgba(255,255,255,.4);color:#fff;padding:10px 14px;border-radius:26px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;}
+.btn-ghost:active{background:rgba(255,255,255,.28);}
+.btn-solid{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--green);color:#fff;border:none;padding:10px 14px;border-radius:26px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;}
+.btn-solid:active{opacity:.85;}
+
+/* toast */
+.toast{position:absolute;bottom:68px;left:50%;transform:translateX(-50%);background:rgba(15,110,86,.95);color:#fff;padding:9px 18px;border-radius:24px;font-size:13px;font-weight:500;white-space:nowrap;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* ══ BOTTOM SHEETS ══ */
+.sheet-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;flex-direction:column;justify-content:flex-end;}
+.sheet{background:var(--surface);border-radius:24px 24px 0 0;padding:16px;display:flex;flex-direction:column;gap:12px;max-height:72%;}
+.sheet-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 4px;}
+.sheet-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);}
+.sheet-sub{font-size:12px;color:var(--muted);margin-top:-8px;}
+
+/* chat */
+.chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;max-height:180px;padding-bottom:4px;}
+.chat-msgs::-webkit-scrollbar{display:none;}
+.chat-quick{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:2px;}
+.chat-quick-btn{font-size:11px;padding:5px 10px;border-radius:20px;border:.5px solid var(--green);color:var(--green);background:var(--green-light);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:background .15s;}
+.chat-quick-btn:active{background:var(--green);color:#fff;}
+.msg{padding:9px 13px;border-radius:18px;font-size:13px;line-height:1.5;max-width:82%;}
+.msg.owner{background:var(--green-light);color:var(--green-dark);align-self:flex-start;}
+.msg.user{background:var(--green);color:#fff;align-self:flex-end;}
+.chat-input-row{display:flex;gap:8px;}
+.chat-input-row input{flex:1;border:.5px solid var(--border2);border-radius:24px;padding:10px 14px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
+.chat-input-row input:focus{outline:none;border-color:var(--green);}
+.chat-send{background:var(--green);color:#fff;border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+
+/* slots */
+.slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.slot{border:.5px solid var(--border2);border-radius:var(--r-sm);padding:9px 4px;text-align:center;cursor:pointer;font-size:12px;color:var(--muted);background:var(--surface);user-select:none;-webkit-user-select:none;}
+.slot:hover:not(.full):not(.sel){border-color:var(--green);color:var(--green);}
+.slot.sel,.slot.sel:hover,.slot.sel:focus,.slot.sel:active{background:var(--green)!important;color:#fff!important;border-color:var(--green)!important;}
+.slot.full{background:var(--bg);color:rgba(0,0,0,.25);cursor:not-allowed;text-decoration:line-through;pointer-events:none;}
+.confirm-btn{background:var(--green);color:#fff;border:none;border-radius:14px;padding:14px;width:100%;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:.2px;transition:opacity .2s,transform .1s;margin-top:4px;}
+.confirm-btn:hover{opacity:.92;}
+.confirm-btn:active{opacity:.8;transform:scale(.98);}
+.order-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:.5px solid var(--border);font-size:13px;}
+.order-row:last-of-type{border:none;}
+.order-row .label{color:var(--muted);}
+.qty-row{display:flex;align-items:center;gap:14px;padding:4px 0;}
+.qty-btn{width:34px;height:34px;border-radius:50%;border:.5px solid var(--border2);background:none;font-size:20px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.qty-btn:hover{background:var(--green-light);}
+.qty-val{font-size:16px;font-weight:500;min-width:20px;text-align:center;}
+
+/* auth prompt */
+.auth-prompt-sheet{background:var(--surface);border-radius:24px 24px 0 0;padding:24px 20px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+.auth-prompt-sheet .prompt-icon{font-size:38px;}
+.auth-prompt-sheet h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;text-align:center;color:var(--text);}
+.auth-prompt-sheet p{font-size:13px;color:var(--muted);text-align:center;line-height:1.5;margin-top:-4px;}
+.auth-prompt-btns{display:flex;gap:8px;width:100%;margin-top:4px;}
+.auth-prompt-btns button{flex:1;padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;}
+.auth-prompt-btns .btn-login{background:var(--green);color:#fff;}
+.auth-prompt-btns .btn-signup{background:var(--green-light);color:var(--green-dark);}
+
+/* ══ BURGER ══ */
+.burger-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:400;display:flex;flex-direction:column;justify-content:flex-end;opacity:0;pointer-events:none;transition:opacity .25s;}
+.burger-overlay.open{opacity:1;pointer-events:auto;}
+.burger-menu{background:var(--surface);border-radius:24px 24px 0 0;padding:20px 20px 28px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);max-height:80%;overflow-y:auto;}
+.burger-overlay.open .burger-menu{transform:translateY(0);}
+.burger-menu::-webkit-scrollbar{display:none;}
+.burger-menu-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.burger-menu-header .logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--green);}
+.burger-close{background:none;border:none;cursor:pointer;color:var(--muted);display:flex;padding:4px;}
+.burger-close i{font-size:22px;}
+.burger-user{display:flex;align-items:center;gap:10px;background:var(--green-light);border-radius:14px;padding:12px 14px;margin-bottom:14px;}
+.burger-user.guest{background:var(--bg);}
+.burger-avatar{width:36px;height:36px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.burger-avatar.guest-av{background:var(--muted);}
+.burger-avatar i{font-size:20px;color:#fff;}
+.burger-user-name{font-size:13px;font-weight:600;color:var(--green-dark);}
+.burger-user-name.guest{color:var(--text);}
+.burger-user-sub{font-size:11px;color:var(--green);margin-top:1px;}
+.burger-user-sub.guest{color:var(--muted);}
+.burger-items{display:flex;flex-direction:column;gap:2px;}
+.burger-item{display:flex;align-items:center;gap:12px;padding:13px 12px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text);border:none;background:none;font-family:'DM Sans',sans-serif;width:100%;text-align:left;transition:background .15s;}
+.burger-item:hover{background:var(--bg);}
+.burger-item i{font-size:20px;color:var(--muted);}
+.burger-item.accent{color:var(--green);}
+.burger-item.accent i{color:var(--green);}
+.burger-item.danger{color:var(--coral);}
+.burger-item.danger i{color:var(--coral);}
+.burger-divider{height:.5px;background:var(--border2);margin:6px 0;}
+/* saved mini-list inside burger */
+.burger-saved-list{display:flex;flex-direction:column;gap:6px;margin-top:4px;padding:0 4px;}
+.burger-saved-card{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:10px 12px;}
+.burger-saved-icon{font-size:22px;width:36px;text-align:center;flex-shrink:0;}
+.burger-saved-info{flex:1;}
+.burger-saved-info .bsi-name{font-size:12px;font-weight:600;color:var(--text);}
+.burger-saved-info .bsi-sub{font-size:11px;color:var(--muted);}
+.burger-saved-empty{font-size:12px;color:var(--muted);padding:6px 12px 4px;}
+
+/* ══ HOME PAGE ══ */
+.home-page{position:absolute;inset:0;z-index:150;overflow-y:auto;background:var(--bg);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .25s;}
+.home-page.open{opacity:1;pointer-events:auto;}
+.home-page::-webkit-scrollbar{display:none;}
+.home-hero{height:200px;background:linear-gradient(135deg,#0a2210 0%,#1D9E75 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;flex-shrink:0;}
+.home-hero .hero-emoji{font-size:80px;opacity:.15;position:absolute;}
+.home-hero h1{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fff;position:relative;z-index:1;}
+.home-hero p{font-size:13px;color:rgba(255,255,255,.75);position:relative;z-index:1;margin-top:4px;}
+.home-close-btn{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.2);border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;}
+.home-close-btn i{font-size:18px;color:#fff;}
+.home-body{padding:16px;display:flex;flex-direction:column;gap:14px;}
+.home-section{background:var(--surface);border-radius:var(--r);border:.5px solid var(--border);padding:16px;}
+.home-section h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.home-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.home-stat{background:var(--bg);border-radius:10px;padding:12px;text-align:center;}
+.home-stat .num{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);}
+.home-stat .lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+.home-feature-list{display:flex;flex-direction:column;gap:8px;}
+.home-feature{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--muted);line-height:1.4;}
+.home-feature i{font-size:18px;color:var(--green);flex-shrink:0;margin-top:1px;}
+.home-cta-row{display:flex;gap:8px;}
+.home-cta-btn{flex:1;padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:center;border:none;}
+.home-cta-btn.primary{background:var(--green);color:#fff;}
+.home-cta-btn.secondary{background:var(--bg);color:var(--green);border:.5px solid var(--green);}
+
+/* ══ AUTH ══ */
+.auth-overlay{position:absolute;inset:0;z-index:350;background:var(--bg);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .25s;overflow-y:auto;}
+.auth-overlay.open{opacity:1;pointer-events:auto;}
+.auth-overlay::-webkit-scrollbar{display:none;}
+.auth-header{padding:16px 16px 0;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.auth-back{background:none;border:none;cursor:pointer;display:flex;align-items:center;color:var(--muted);}
+.auth-back i{font-size:22px;}
+.auth-body{padding:24px 20px;display:flex;flex-direction:column;gap:18px;flex:1;}
+.auth-logo{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--green);letter-spacing:-1px;}
+.auth-subtitle{font-size:14px;color:var(--muted);margin-top:-10px;}
+.auth-form{display:flex;flex-direction:column;gap:12px;}
+.auth-label{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:4px;display:block;}
+.auth-input{width:100%;border:.5px solid var(--border2);border-radius:12px;padding:12px 14px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);outline:none;transition:border-color .15s;}
+.auth-input:focus{border-color:var(--green);}
+.auth-input.error{border-color:var(--coral);}
+.auth-error{font-size:11px;color:var(--coral);margin-top:4px;min-height:14px;}
+.auth-submit{background:var(--green);color:#fff;border:none;border-radius:14px;padding:14px;width:100%;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s;margin-top:4px;}
+.auth-submit:active{opacity:.85;}
+.auth-switch{font-size:13px;color:var(--muted);text-align:center;}
+.auth-switch span{color:var(--green);font-weight:600;cursor:pointer;}
+.auth-divider{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:.5px;background:var(--border2);}
+
+/* ══ MY BOOKINGS & SAVED ══ */
+.bookings-overlay{position:absolute;inset:0;z-index:350;background:var(--bg);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .25s;}
+.bookings-overlay.open{opacity:1;pointer-events:auto;}
+.bookings-header{background:var(--surface);padding:14px 16px;border-bottom:.5px solid var(--border2);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.bookings-back{background:none;border:none;cursor:pointer;display:flex;color:var(--muted);}
+.bookings-back i{font-size:22px;}
+.bookings-header h2{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text);}
+.bookings-list{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px;}
+.bookings-list::-webkit-scrollbar{display:none;}
+.booking-card{background:var(--surface);border-radius:var(--r);border:.5px solid var(--border);padding:14px;display:flex;gap:12px;align-items:flex-start;}
+.booking-icon{width:44px;height:44px;border-radius:10px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.booking-info{flex:1;}
+.booking-info h4{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.booking-info .meta{font-size:11px;color:var(--muted);line-height:1.5;}
+.booking-badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600;align-self:flex-start;flex-shrink:0;}
+.booking-badge.turf{background:var(--green-light);color:var(--green-dark);}
+.booking-badge.equip{background:var(--amber-light);color:var(--amber-dark);}
+.bookings-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:14px;text-align:center;padding:24px;}
+.bookings-empty i{font-size:48px;opacity:.3;}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+
+  <div class="pages">
+    <div class="page" id="pg-turf">
+      <div class="reels-wrap"><div class="reels-scroll" id="turf-scroll"></div></div>
+    </div>
+    <div class="page hidden" id="pg-equip">
+      <div class="reels-wrap"><div class="reels-scroll" id="equip-scroll"></div></div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn active" id="nav-turf" onclick="switchTab('turf')" aria-label="Rent Turf">
+      <i class="ti ti-ball-football"></i><span>Rent Turf</span>
+    </button>
+    <button class="nav-burger" onclick="openBurger()" aria-label="Menu">
+      <div class="burger-pill"><i class="ti ti-menu-2"></i></div>
+    </button>
+    <button class="nav-btn" id="nav-equip" onclick="switchTab('equip')" aria-label="Buy Equipment">
+      <i class="ti ti-barbell"></i><span>Buy Equipment</span>
+    </button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- HOME PAGE -->
+  <div class="home-page" id="home-page">
+    <div class="home-hero">
+      <div class="hero-emoji">🏟️</div>
+      <h1>RentMyTurf</h1>
+      <p>Kolkata's #1 sports &amp; fitness platform</p>
+      <button class="home-close-btn" onclick="closeHome()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="home-body">
+      <div class="home-section">
+        <h3><i class="ti ti-chart-bar" style="color:var(--green);font-size:18px"></i> By the numbers</h3>
+        <div class="home-stat-grid">
+          <div class="home-stat"><div class="num">120+</div><div class="lbl">Venues listed</div></div>
+          <div class="home-stat"><div class="num">40K+</div><div class="lbl">Happy users</div></div>
+          <div class="home-stat"><div class="num">5 min</div><div class="lbl">Avg. booking time</div></div>
+          <div class="home-stat"><div class="num">4.8★</div><div class="lbl">App rating</div></div>
+        </div>
+      </div>
+      <div class="home-section">
+        <h3><i class="ti ti-bolt" style="color:var(--amber);font-size:18px"></i> Why RentMyTurf?</h3>
+        <div class="home-feature-list">
+          <div class="home-feature"><i class="ti ti-check"></i><span>Instant slot booking for turfs, courts &amp; pools across Kolkata</span></div>
+          <div class="home-feature"><i class="ti ti-check"></i><span>Rent or buy gym equipment delivered to your door</span></div>
+          <div class="home-feature"><i class="ti ti-check"></i><span>Chat directly with venue owners before booking</span></div>
+          <div class="home-feature"><i class="ti ti-check"></i><span>No booking fee — pay only at the venue</span></div>
+        </div>
+      </div>
+      <div class="home-section">
+        <h3><i class="ti ti-map-pin" style="color:var(--coral);font-size:18px"></i> Serving Kolkata</h3>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;">Currently covering Park Street, Salt Lake, New Town, Ballygunge and Rajarhat. Expanding across West Bengal in 2025.</p>
+      </div>
+      <div class="home-cta-row">
+        <button class="home-cta-btn primary" onclick="closeHome();switchTab('turf')">Browse Turfs</button>
+        <button class="home-cta-btn secondary" onclick="closeHome();switchTab('equip')">Shop Equipment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BURGER MENU -->
+  <div class="burger-overlay" id="burger-overlay" onclick="handleBurgerBackdrop(event)">
+    <div class="burger-menu">
+      <div class="burger-menu-header">
+        <span class="logo">RentMyTurf</span>
+        <button class="burger-close" onclick="closeBurger()"><i class="ti ti-x"></i></button>
+      </div>
+      <div id="burger-user-area"></div>
+      <div class="burger-items" id="burger-items"></div>
+    </div>
+  </div>
+
+  <!-- AUTH OVERLAY -->
+  <div class="auth-overlay" id="auth-overlay">
+    <div class="auth-header">
+      <button class="auth-back" onclick="closeAuth()"><i class="ti ti-arrow-left"></i></button>
+    </div>
+    <div class="auth-body" id="auth-body"></div>
+  </div>
+
+  <!-- MY BOOKINGS -->
+  <div class="bookings-overlay" id="bookings-overlay">
+    <div class="bookings-header">
+      <button class="bookings-back" onclick="closeBookings()"><i class="ti ti-arrow-left"></i></button>
+      <h2 id="bookings-title">My Bookings</h2>
+    </div>
+    <div class="bookings-list" id="bookings-list"></div>
+  </div>
+
+</div>
+<script>
+/* ════════════════════════════════
+   PHOTO POOLS  (3 Unsplash photos per item)
+   Using direct Unsplash source URLs — no API key needed
+════════════════════════════════ */
+const turfPhotos = {
+  1: ['turf1-1.jpg','turf1-3.jpg','turf1-2.jpg'],
+  2: ['turf2-1.jpg','turf2-3.jpg','turf2-3.jpg'],
+  3: ['turf3-1.jpg','turf3-2.jpg','turf3-3.jpg'],
+  4: ['turf4-1.jpg','turf4-2.jpg','turf4-3.jpg'],
+  5: ['turf5-1.jpg','turf5-3.jpg','turf5-3.jpg'],
+};
+const equipPhotos = {
+  101: ['eqp1-1.jpg','eqp1-2.jpg'],
+  102: ['eqp2-1.jpg'],
+  103: ['eqp3-1.jpg','eqp3-2.jpg'],
+  104: ['eqp4-1.jpg','eqp4-2.jpg'],
+  105: ['eqp5-1.jpg','eqp5-2.jpg'],
+};
+
+/* ════════════════════════════════
+   DATA
+════════════════════════════════ */
+const turfs = [
+  {id:1,emoji:'🏏',bg:'#1a0d00',name:'Elgin Turf, Bhowanipore',sport:'Football · 5-a-side',price:'₹1,200/hr',rating:'4.9',reviews:'210',desc:'Floodlit FIFA-quality astroturf beside iconic Maidan. Changing rooms & parking included.',slots:['5:00 AM','6:00 AM','7:00 AM','4:00 PM','5:00 PM','6:00 PM','7:00 PM'],full:[0,3],likes:231},
+  {id:2,emoji:'🏸',bg:'#0a1522',name:'SmashPoint, Salt Lake',sport:'Badminton · 2 courts',price:'₹1300/hr',rating:'4.6',reviews:'89',desc:'Synthetic BWF-standard courts with 24/7 keycode access and seating gallery.',slots:['6:00 AM','7:00 AM','9:00 AM','11:00 AM','2:00 PM','4:00 PM','6:00 PM','8:00 PM'],full:[1,4],likes:94},
+  {id:3,emoji:'⚽',bg:'#0a2210',name:'Eden Nets, Maidan',sport:'Cricket · Full pitch',price:'₹1400/hr',rating:'4.8',reviews:'142',desc:'BCCI-spec matted pitch with professional nets, covers, and scoreboard. Near Action Area.',slots:['6:00 AM','7:00 AM','8:00 AM','5:00 PM','6:00 PM','7:00 PM','8:00 PM','9:00 PM'],full:[2,5],likes:157},
+  {id:4,emoji:'🎾',bg:'#0a0a20',name:'Baseline Club, Ballygunge',sport:'Pickleball · 4 courts',price:'₹1050/hr',rating:'4.7',reviews:'55',desc:'Brand new indoor AC courts in South Kolkata. Rackets & balls on rent at ₹50 extra.',slots:['7:00 AM','8:00 AM','10:00 AM','12:00 PM','3:00 PM','5:00 PM','7:00 PM','9:00 PM'],full:[2,6],likes:61},
+  {id:5,emoji:'🏊',bg:'#001a22',name:'AquaSprint, Rajarhat',sport:'Swimming · 25m pool',price:'₹900/hr',rating:'4.5',reviews:'78',desc:'Olympic heated 25 m pool with certified lifeguard near Eco Park. Towel & locker included.',slots:['5:30 AM','6:30 AM','7:30 AM','4:00 PM','5:00 PM','6:00 PM','7:00 PM'],full:[1,5],likes:82},
+];
+const equips = [
+  {id:101,emoji:'🏋️',bg:'#120a00',name:'Adjustable Dumbbell Set',category:'Strength · 5–25 kg',price:'₹80/day',priceSub:'or ₹3,499 to buy',rating:'4.7',reviews:'23',desc:'Premium chrome-steel hex dumbbells, 5–25 kg pairs. Non-roll design.',action:'Rent Now',actionIcon:'ti-calendar',likes:44,specs:[['Weight','5–25 kg'],['Material','Chrome steel'],['Set','10 dumbbells']]},
+  {id:102,emoji:'🚴',bg:'#0a1200',name:'Spin Cycle Pro X',category:'Cardio · Magnetic resistance',price:'₹120/day',priceSub:'or ₹18,999 to buy',rating:'4.8',reviews:'14',desc:'Commercial-grade indoor spin cycle with 20 resistance levels and LCD display.',action:'Rent Now',actionIcon:'ti-calendar',likes:31,specs:[['Resistance','20 levels'],['Max load','130 kg'],['Display','LCD + HR']]},
+  {id:103,emoji:'🏋️‍♂️',bg:'#1a0505',name:'Olympic Barbell 20 kg',category:'Strength · Powerlifting',price:'₹2,499',priceSub:'Free delivery · In stock',rating:'4.6',reviews:'8',desc:'Olympic spec 20 kg barbell 2.2 m, needle-bearing rotation, knurled grip.',action:'Buy Now',actionIcon:'ti-shopping-cart',likes:19,specs:[['Length','2.2 m'],['Diameter','28 mm'],['Bearings','Needle']]},
+  {id:104,emoji:'🧘',bg:'#001208',name:'Yoga Mat Premium',category:'Yoga · 6 mm TPE',price:'₹45/day',priceSub:'or ₹799 to buy',rating:'4.9',reviews:'41',desc:'6 mm non-slip TPE mat with alignment lines and carry strap. 6 colours.',action:'Rent Now',actionIcon:'ti-calendar',likes:73,specs:[['Thickness','6 mm'],['Material','TPE'],['Size','183 × 61 cm']]},
+  {id:105,emoji:'⚡',bg:'#10100a',name:'Resistance Band Kit',category:'Recovery · 10–40 lb',price:'₹799',priceSub:'Free delivery · 12 in stock',rating:'4.5',reviews:'19',desc:'5 natural-latex bands, handles, ankle straps and door anchor.',action:'Buy Now',actionIcon:'ti-shopping-cart',likes:27,specs:[['Resistance','10–40 lb'],['Material','Latex'],['Kit','5 bands + acc.']]},
+];
+
+/* ════════════════════════════════
+   STATE
+════════════════════════════════ */
+let activeTab='turf';
+const likesState={}, savesState={}, selSlots={};
+const users={};
+let currentUser=null;
+const myBookings=[];
+let pendingAction=null;
+
+/* ════════════════════════════════
+   HELPERS
+════════════════════════════════ */
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
+}
+function escHtml(s){ return s.replace(/'/g,"\\'"); }
+
+/* ════════════════════════════════
+   TAB SWITCH
+════════════════════════════════ */
+function switchTab(tab){
+  activeTab=tab;
+  ['turf','equip'].forEach(id=>{
+    document.getElementById('pg-'+id).classList.toggle('hidden',id!==tab);
+    document.getElementById('nav-'+id).classList.toggle('active',id===tab);
+  });
+}
+
+/* ════════════════════════════════
+   BUILD REEL NODE  (pure DOM, no innerHTML tricks for IDs)
+════════════════════════════════ */
+function makeReelNode(item, scrollId, mode){
+  const isTurf=mode==='turf';
+  const photos=isTurf?(turfPhotos[item.id]||[]):(equipPhotos[item.id]||[]);
+
+  const reel=document.createElement('div');
+  reel.className='reel';
+  reel.style.cssText='height:100%;flex-shrink:0;';
+  reel.dataset.filter=isTurf?item.sport.toLowerCase():(item.action==='Rent Now'?'rent':'buy');
+  reel.dataset.itemId=item.id;
+
+  // --- photo carousel ---
+  const photoStrip=document.createElement('div');
+  photoStrip.className='reel-photos';
+
+  const dotsWrap=document.createElement('div');
+  dotsWrap.className='reel-photo-dots';
+
+  photos.forEach((url,pi)=>{
+    const slide=document.createElement('div');
+    slide.className='reel-photo-slide';
+    const img=document.createElement('img');
+    img.src=url; img.alt=''; img.loading='lazy';
+    img.onerror=()=>{ slide.style.background=item.bg; };
+    slide.appendChild(img);
+    photoStrip.appendChild(slide);
+
+    const dot=document.createElement('div');
+    dot.className='reel-photo-dot'+(pi===0?' active':'');
+    dotsWrap.appendChild(dot);
+  });
+
+  // fallback bg canvas
+  const canvas=document.createElement('div');
+  canvas.className='reel-canvas-fallback';
+  canvas.style.background=item.bg;
+  canvas.innerHTML=`<div class="reel-emoji-bg">${item.emoji}</div><div class="reel-grid-pattern"></div>`;
+
+  // photo scroll → dot sync (no ID dependency)
+  photoStrip.addEventListener('scroll',()=>{
+    const idx=Math.round(photoStrip.scrollLeft/Math.max(photoStrip.offsetWidth,1));
+    dotsWrap.querySelectorAll('.reel-photo-dot').forEach((d,di)=>d.classList.toggle('active',di===idx));
+  },{passive:true});
+
+  // --- top bar ---
+  const top=document.createElement('div');
+  top.className='reel-top';
+  const logo=document.createElement('span');
+  logo.className='reel-logo'; logo.textContent='RentMyTurf';
+  logo.onclick=openHome;
+  top.appendChild(logo);
+
+  const tabs=document.createElement('div');
+  tabs.className='reel-tabs';
+  const tabDefs=isTurf
+    ?[{label:'All',filter:'all'},{label:'⚽',filter:'football'},{label:'🏏',filter:'cricket'}]
+    :[{label:'All',filter:'all'},{label:'Rent',filter:'rent'},{label:'Buy',filter:'buy'}];
+  tabDefs.forEach((td,ti)=>{
+    const t=document.createElement('div');
+    t.className='reel-tab'+(ti===0?' active':'');
+    t.dataset.filter=td.filter;
+    t.textContent=td.label;
+    t.onclick=()=>switchFilter(t,mode);
+    tabs.appendChild(t);
+  });
+  top.appendChild(tabs);
+
+  // --- right action bar ---
+  const actions=document.createElement('div');
+  actions.className='reel-actions';
+
+  // Like
+  const likeAct=document.createElement('div');
+  likeAct.className='reel-act'+(likesState[item.id]?' liked':'');
+  likeAct.dataset.role='like';
+  const likeI=document.createElement('i');
+  likeI.className='ti '+(likesState[item.id]?'ti-heart-filled':'ti-heart');
+  const likeSp=document.createElement('span');
+  likeSp.textContent=item.likes+(likesState[item.id]?1:0);
+  likeAct.appendChild(likeI); likeAct.appendChild(likeSp);
+  likeAct.onclick=()=>toggleLike(item.id, reel);
+
+  // Save
+  const saveAct=document.createElement('div');
+  saveAct.className='reel-act'+(savesState[item.id]?' saved':'');
+  saveAct.dataset.role='save';
+  const saveI=document.createElement('i');
+  saveI.className='ti '+(savesState[item.id]?'ti-bookmark-filled':'ti-bookmark');
+  const saveSp=document.createElement('span');
+  saveSp.textContent=savesState[item.id]?'Saved':'Save';
+  saveAct.appendChild(saveI); saveAct.appendChild(saveSp);
+  saveAct.onclick=()=>toggleSave(item.id, reel);
+
+  // Share
+  const shareAct=document.createElement('div');
+  shareAct.className='reel-act';
+  shareAct.innerHTML=`<i class="ti ti-share"></i><span>Share</span>`;
+  shareAct.onclick=()=>openShare(item.name);
+
+  actions.appendChild(likeAct);
+  actions.appendChild(saveAct);
+  actions.appendChild(shareAct);
+
+  // --- info block ---
+  const info=document.createElement('div');
+  info.className='reel-info';
+  const pbc=isTurf?'badge green':'badge amber';
+  info.innerHTML=`
+    <h3>${item.name}</h3>
+    <div class="reel-badges">
+      <span class="badge">${isTurf?item.sport:item.category}</span>
+      <span class="${pbc}">${item.price}</span>
+      <span class="badge">⭐ ${item.rating} (${item.reviews})</span>
+    </div>
+    <div class="reel-desc">${item.desc}</div>`;
+
+  // --- CTA ---
+  const cta=document.createElement('div');
+  cta.className='reel-cta';
+  if(isTurf){
+    cta.innerHTML=`
+      <button class="btn-ghost" onclick="openAsk(${item.id},'${escHtml(item.name)}')"><i class="ti ti-message-dots" style="font-size:15px"></i> Ask Owner</button>
+      <button class="btn-solid" onclick="guardedAction(()=>openBook(${item.id}))"><i class="ti ti-calendar" style="font-size:15px"></i> Book Now</button>`;
+  } else {
+    cta.innerHTML=`
+      <button class="btn-ghost" onclick="openContact(${item.id},'${escHtml(item.name)}')"><i class="ti ti-message-dots" style="font-size:15px"></i> Ask Seller</button>
+      <button class="btn-solid" onclick="guardedAction(()=>openOrder(${item.id}))"><i class="ti ti-calendar" style="font-size:15px"></i> ${item.action}</button>`;
+  }
+
+  reel.appendChild(canvas);
+  reel.appendChild(photoStrip);
+  reel.appendChild(dotsWrap);
+  reel.appendChild(top);
+  reel.appendChild(actions);
+  reel.appendChild(info);
+  reel.appendChild(cta);
+  return reel;
+}
+
+/* ════════════════════════════════
+   CIRCULAR INFINITE SCROLL
+   ─────────────────────────────────
+   Render exactly N real nodes.
+   After each snap settles, if we're at the first or last card,
+   silently move the boundary node to the other end and correct
+   scrollTop by one card height — browser never paints a jump.
+
+   virtualIdx  tracks which data index is logically "current"
+   (only needed for external callers; not used for scroll itself).
+════════════════════════════════ */
+function buildReels(items, scrollId, mode){
+  const container=document.getElementById(scrollId);
+  container.innerHTML='';
+  const N=items.length;
+
+  // build the N real nodes
+  items.forEach(item=>{
+    container.appendChild(makeReelNode(item, scrollId, mode));
+  });
+
+  // helper: card height (all cards are the same height = container height)
+  const cardH=()=>container.clientHeight;
+
+  // which logical index is visible right now
+  let currentIdx=0;
+
+  // After scroll settles, check if we need to rotate the queue
+  let scrollTimer=null;
+  container.addEventListener('scroll',()=>{
+    clearTimeout(scrollTimer);
+    scrollTimer=setTimeout(()=>{
+      const h=cardH();
+      if(!h) return;
+      const visibleSlot=Math.round(container.scrollTop/h); // 0 … N-1
+
+      if(visibleSlot===0){
+        // User scrolled to the very first DOM node.
+        // Move the LAST node to the front, shift scrollTop up by one card.
+        const last=container.lastElementChild;
+        container.insertBefore(last, container.firstElementChild);
+        // silent position correction — no scroll event fired because we set scrollTop directly
+        container.scrollTop=h; // now the originally-visible card is still at slot 1
+        currentIdx=(currentIdx-1+N)%N;
+
+      } else if(visibleSlot===N-1){
+        // User scrolled to the very last DOM node.
+        // Move the FIRST node to the back, shift scrollTop down by one card.
+        const first=container.firstElementChild;
+        container.appendChild(first);
+        container.scrollTop=(N-2)*h; // now originally-visible card is at slot N-2
+        currentIdx=(currentIdx+1)%N;
+      }
+    }, 120); // fires after snap animation completes (~100 ms)
+  },{passive:true});
+}
+
+/* ════════════════════════════════
+   FILTER
+════════════════════════════════ */
+function switchFilter(el,mode){
+  el.closest('.reel-top').querySelectorAll('.reel-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const sc=document.getElementById(mode==='turf'?'turf-scroll':'equip-scroll');
+  const f=el.dataset.filter;
+  sc.querySelectorAll('.reel').forEach(r=>{
+    r.style.display=(f==='all'||r.dataset.filter.includes(f))?'':'none';
+  });
+}
+
+/* ════════════════════════════════
+   LIKE / SAVE / SHARE
+   Receive the reel node directly — no fragile ID lookups
+════════════════════════════════ */
+function toggleLike(id, reelNode){
+  likesState[id]=!likesState[id];
+  const act=reelNode.querySelector('[data-role="like"]');
+  if(!act) return;
+  act.classList.toggle('liked',likesState[id]);
+  act.querySelector('i').className='ti '+(likesState[id]?'ti-heart-filled':'ti-heart');
+  const sp=act.querySelector('span');
+  sp.textContent=parseInt(sp.textContent)+(likesState[id]?1:-1);
+}
+
+function toggleSave(id, reelNode){
+  savesState[id]=!savesState[id];
+  const act=reelNode.querySelector('[data-role="save"]');
+  if(!act) return;
+  act.classList.toggle('saved',savesState[id]);
+  act.querySelector('i').className='ti '+(savesState[id]?'ti-bookmark-filled':'ti-bookmark');
+  act.querySelector('span').textContent=savesState[id]?'Saved':'Save';
+  showToast(savesState[id]?'🔖 Saved!':'Removed from saved');
+}
+
+function openShare(name){ showToast('🔗 Link copied for '+name.split(',')[0]); }
+
+/* ════════════════════════════════
+   AUTH GUARD
+════════════════════════════════ */
+function guardedAction(fn){
+  if(currentUser){ fn(); return; }
+  pendingAction=fn;
+  removeSheet();
+  const bd=document.createElement('div');
+  bd.className='sheet-backdrop'; bd.id='sheet-backdrop';
+  bd.innerHTML=`
+    <div class="auth-prompt-sheet">
+      <div class="sheet-handle"></div>
+      <div class="prompt-icon">🔐</div>
+      <h3>Login to continue</h3>
+      <p>You need an account to make bookings.<br>It only takes 30 seconds!</p>
+      <div class="auth-prompt-btns">
+        <button class="btn-login" onclick="removeSheet();openAuth('login')">Login</button>
+        <button class="btn-signup" onclick="removeSheet();openAuth('signup')">Sign Up</button>
+      </div>
+    </div>`;
+  bd.addEventListener('click',e=>{ if(e.target===bd){removeSheet();pendingAction=null;} });
+  document.getElementById('phone').appendChild(bd);
+}
+
+/* ════════════════════════════════
+   SHEET HELPERS
+════════════════════════════════ */
+function makeSheet(html){
+  const bd=document.createElement('div');
+  bd.className='sheet-backdrop'; bd.id='sheet-backdrop';
+  bd.innerHTML=`<div class="sheet">${html}</div>`;
+  bd.addEventListener('click',e=>{ if(e.target===bd) removeSheet(); });
+  return bd;
+}
+function removeSheet(){ document.getElementById('sheet-backdrop')?.remove(); }
+
+/* ════════════════════════════════
+   CHAT  — fixed send function
+   Key fix: store replies on a module-level variable so the
+   button's onclick closure always finds them.
+════════════════════════════════ */
+let _activeReplies=[];
+
+function _appendUserMsg(text){
+  const msgs=document.getElementById('chat-msgs');
+  if(!msgs||!text.trim()) return false;
+  const um=document.createElement('div'); um.className='msg user'; um.textContent=text; msgs.appendChild(um);
+  msgs.scrollTop=msgs.scrollHeight;
+  return true;
+}
+function _appendOwnerReply(){
+  setTimeout(()=>{
+    const msgs=document.getElementById('chat-msgs');
+    if(!msgs) return;
+    const rm=document.createElement('div'); rm.className='msg owner';
+    rm.textContent=_activeReplies[Math.floor(Math.random()*_activeReplies.length)];
+    msgs.appendChild(rm); msgs.scrollTop=msgs.scrollHeight;
+  },700);
+}
+
+// Called by the Send button and Enter key
+function sendChatMsg(){
+  const inp=document.getElementById('chat-inp');
+  if(!inp) return;
+  const text=inp.value.trim();
+  if(!text) return;
+  if(_appendUserMsg(text)){ inp.value=''; _appendOwnerReply(); }
+}
+
+// Called by quick-reply pill clicks
+function sendQuickMsg(text){
+  if(_appendUserMsg(text)) _appendOwnerReply();
+}
+
+function _openChat(title, replies, quickReplies, greetings){
+  removeSheet();
+  _activeReplies=replies;
+  const quickHtml=quickReplies.map(q=>`<button class="chat-quick-btn" onclick="sendQuickMsg('${q}')">${q}</button>`).join('');
+  const greetHtml=greetings.map(g=>`<div class="msg owner">${g}</div>`).join('');
+  const sheet=makeSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">${title}</div>
+    <div class="chat-msgs" id="chat-msgs">${greetHtml}</div>
+    <div class="chat-quick">${quickHtml}</div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-inp" placeholder="Type a message…">
+      <button class="chat-send" onclick="sendChatMsg()"><i class="ti ti-send" style="font-size:16px"></i></button>
+    </div>`);
+  document.getElementById('phone').appendChild(sheet);
+  // Enter key
+  setTimeout(()=>{
+    const inp=document.getElementById('chat-inp');
+    if(inp) inp.addEventListener('keydown',e=>{ if(e.key==='Enter') sendChatMsg(); });
+  },50);
+}
+
+const ownerReplies=['Sure! Available for that slot.','We have changing rooms & parking!','Payment via UPI on arrival or online.','Lights work till 11 PM!','Max 10 players per session.'];
+const sellerReplies=['Available! Delivery within 24 hrs.','Free pickup also available.','Min rental 2 days. Weekly discount too.','Excellent condition — barely used.','UPI or card, both accepted.'];
+
+function openAsk(id,name){
+  _openChat(
+    `Chat · ${name.split(',')[0]}`,
+    ownerReplies,
+    ['Is this slot available?','What facilities are included?','Can I pay online?'],
+    ['Hi! How can I help you? 👋','Ask me about slots, facilities or pricing.']
+  );
+}
+function openContact(id,name){
+  _openChat(
+    `Chat · ${name.split(' ').slice(0,3).join(' ')}`,
+    sellerReplies,
+    ['Is this available?','What is the delivery time?','Can I try before renting?'],
+    ['Hello! Interested in this equipment? 💪','Ask about condition, delivery or pricing.']
+  );
+}
+
+/* ════════════════════════════════
+   TURF: BOOK SLOT
+════════════════════════════════ */
+function openBook(id){
+  removeSheet();
+  const t=turfs.find(x=>x.id===id);
+  if(selSlots[id]==null) selSlots[id]=null;
+  const slotsHtml=t.slots.map((s,i)=>{
+    const full=t.full.includes(i),sel=selSlots[id]===i;
+    return `<div class="slot${full?' full':sel?' sel':''}" onclick="pickSlot(${id},${i})">${s}</div>`;
+  }).join('');
+  const sheet=makeSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Book · ${t.name.split(',')[0]}</div>
+    <div class="sheet-sub">${t.price} · select a time slot</div>
+    <div class="slot-grid" id="sg-${id}">${slotsHtml}</div>
+    <button class="confirm-btn" onclick="confirmBook(${id})">Confirm Booking</button>`);
+  document.getElementById('phone').appendChild(sheet);
+}
+function pickSlot(turfId,idx){
+  const t=turfs.find(x=>x.id===turfId);
+  if(t.full.includes(idx)) return;
+  selSlots[turfId]=idx;
+  document.querySelectorAll(`#sg-${turfId} .slot`).forEach((el,i)=>{
+    el.classList.toggle('sel',!t.full.includes(i)&&i===idx);
+  });
+}
+function confirmBook(id){
+  const t=turfs.find(x=>x.id===id);
+  const s=selSlots[id];
+  if(s===null||s===undefined){ showToast('Please select a slot first'); return; }
+  removeSheet();
+  myBookings.unshift({type:'turf',emoji:t.emoji,name:t.name,detail:`${t.slots[s]} · ${t.price}`,badge:'turf',ts:new Date()});
+  showToast(`✅ Booked ${t.slots[s]} at ${t.name.split(',')[0]}!`);
+}
+
+/* ════════════════════════════════
+   EQUIP: ORDER
+════════════════════════════════ */
+function openOrder(id){
+  removeSheet();
+  const eq=equips.find(e=>e.id===id);
+  const isRent=eq.action==='Rent Now';
+  const sheet=makeSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">${isRent?'Rent':'Buy'} · ${eq.name}</div>
+    <div class="sheet-sub">${eq.priceSub}</div>
+    ${eq.specs.map(s=>`<div class="order-row"><span class="label">${s[0]}</span><span>${s[1]}</span></div>`).join('')}
+    <div class="order-row" style="border:none;align-items:center;">
+      <span class="label">${isRent?'Days':'Qty'}</span>
+      <div class="qty-row">
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <span class="qty-val" id="qty-val">1</span>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+    </div>
+    <button class="confirm-btn" onclick="confirmOrder(${eq.id})">${isRent?'Confirm Rental':'Place Order'}</button>`);
+  document.getElementById('phone').appendChild(sheet);
+}
+function changeQty(d){ const el=document.getElementById('qty-val'); el.textContent=Math.max(1,parseInt(el.textContent)+d); }
+function confirmOrder(id){
+  const eq=equips.find(e=>e.id===id);
+  const qty=parseInt(document.getElementById('qty-val').textContent);
+  const isRent=eq.action==='Rent Now';
+  removeSheet();
+  myBookings.unshift({type:'equip',emoji:eq.emoji,name:eq.name,detail:`${isRent?`${qty} day${qty>1?'s':''}`:qty+' unit(s)'} · ${eq.price}`,badge:'equip',ts:new Date()});
+  showToast(isRent?`✅ ${eq.name.split(' ').slice(0,2).join(' ')} rented for ${qty} day${qty>1?'s':''}!`:`🛒 ${qty}× ${eq.name.split(' ').slice(0,2).join(' ')} ordered!`);
+}
+
+/* ════════════════════════════════
+   HOME
+════════════════════════════════ */
+function openHome(){ closeBurger(); document.getElementById('home-page').classList.add('open'); }
+function closeHome(){ document.getElementById('home-page').classList.remove('open'); }
+
+/* ════════════════════════════════
+   BURGER MENU  +  SAVED SECTION
+════════════════════════════════ */
+function getSavedItems(){
+  const saved=[];
+  [...turfs,...equips].forEach(item=>{
+    if(savesState[item.id]) saved.push(item);
+  });
+  return saved;
+}
+
+function renderBurgerMenu(){
+  const ua=document.getElementById('burger-user-area');
+  if(currentUser){
+    ua.innerHTML=`<div class="burger-user"><div class="burger-avatar"><i class="ti ti-user"></i></div><div><div class="burger-user-name">${currentUser.name}</div><div class="burger-user-sub">${currentUser.email}</div></div></div>`;
+  } else {
+    ua.innerHTML=`<div class="burger-user guest"><div class="burger-avatar guest-av"><i class="ti ti-user"></i></div><div><div class="burger-user-name guest">Guest User</div><div class="burger-user-sub guest">Not logged in</div></div></div>`;
+  }
+  const bi=document.getElementById('burger-items');
+  let html=`
+    <button class="burger-item" onclick="closeBurger();openHome()"><i class="ti ti-home"></i>Home</button>
+    <button class="burger-item" onclick="closeBurger();switchTab('turf')"><i class="ti ti-ball-football"></i>Rent Turf</button>
+    <button class="burger-item" onclick="closeBurger();switchTab('equip')"><i class="ti ti-barbell"></i>Buy Equipment</button>
+    <div class="burger-divider"></div>`;
+
+  if(currentUser){
+    html+=`<button class="burger-item accent" onclick="closeBurger();openBookings('bookings')"><i class="ti ti-calendar-check"></i>My Bookings</button>`;
+  }
+
+  // Saved section — always visible
+  const savedItems=getSavedItems();
+  html+=`<button class="burger-item accent" onclick="closeBurger();openBookings('saved')"><i class="ti ti-bookmark"></i>Saved <span style="font-size:11px;background:var(--green);color:#fff;border-radius:20px;padding:1px 7px;margin-left:4px;">${savedItems.length}</span></button>`;
+
+  html+=`<div class="burger-divider"></div>`;
+  if(currentUser){
+    html+=`<button class="burger-item danger" onclick="logOut()"><i class="ti ti-logout"></i>Log Out</button>`;
+  } else {
+    html+=`<button class="burger-item accent" onclick="closeBurger();openAuth('login')"><i class="ti ti-login"></i>Login</button>`;
+    html+=`<button class="burger-item accent" onclick="closeBurger();openAuth('signup')"><i class="ti ti-user-plus"></i>Sign Up</button>`;
+  }
+  bi.innerHTML=html;
+}
+function openBurger(){ renderBurgerMenu(); document.getElementById('burger-overlay').classList.add('open'); }
+function closeBurger(){ document.getElementById('burger-overlay').classList.remove('open'); }
+function handleBurgerBackdrop(e){ if(e.target===document.getElementById('burger-overlay')) closeBurger(); }
+
+/* ════════════════════════════════
+   AUTH
+════════════════════════════════ */
+function openAuth(mode){ renderAuthForm(mode); document.getElementById('auth-overlay').classList.add('open'); }
+function closeAuth(){ document.getElementById('auth-overlay').classList.remove('open'); pendingAction=null; }
+
+function renderAuthForm(mode){
+  const body=document.getElementById('auth-body');
+  if(mode==='login'){
+    body.innerHTML=`
+      <div class="auth-logo">Welcome back 👋</div>
+      <div class="auth-subtitle">Login to your account</div>
+      <div class="auth-form">
+        <div><label class="auth-label">Email</label><input class="auth-input" id="ai-email" type="email" placeholder="you@example.com" autocomplete="email"><div class="auth-error" id="ae-email"></div></div>
+        <div><label class="auth-label">Password</label><input class="auth-input" id="ai-pass" type="password" placeholder="••••••••" autocomplete="current-password"><div class="auth-error" id="ae-pass"></div></div>
+        <button class="auth-submit" onclick="submitLogin()">Login</button>
+      </div>
+      <div class="auth-divider">or</div>
+      <div class="auth-switch">No account? <span onclick="renderAuthForm('signup')">Sign Up</span></div>`;
+  } else {
+    body.innerHTML=`
+      <div class="auth-logo">Join RentMyTurf 🏟️</div>
+      <div class="auth-subtitle">Create your account</div>
+      <div class="auth-form">
+        <div><label class="auth-label">Full Name</label><input class="auth-input" id="ai-name" type="text" placeholder="Aarav Sharma" autocomplete="name"><div class="auth-error" id="ae-name"></div></div>
+        <div><label class="auth-label">Email</label><input class="auth-input" id="ai-email" type="email" placeholder="you@example.com" autocomplete="email"><div class="auth-error" id="ae-email"></div></div>
+        <div><label class="auth-label">Password</label><input class="auth-input" id="ai-pass" type="password" placeholder="At least 6 characters" autocomplete="new-password"><div class="auth-error" id="ae-pass"></div></div>
+        <button class="auth-submit" onclick="submitSignup()">Create Account</button>
+      </div>
+      <div class="auth-divider">or</div>
+      <div class="auth-switch">Have an account? <span onclick="renderAuthForm('login')">Login</span></div>`;
+  }
+}
+function setErr(id,msg){ const el=document.getElementById(id); if(el) el.textContent=msg; }
+function clearErr(){ ['ae-name','ae-email','ae-pass'].forEach(id=>setErr(id,'')); ['ai-name','ai-email','ai-pass'].forEach(id=>document.getElementById(id)?.classList.remove('error')); }
+function markErr(inpId,errId,msg){ document.getElementById(inpId)?.classList.add('error'); setErr(errId,msg); }
+
+function submitLogin(){
+  clearErr();
+  const email=(document.getElementById('ai-email')?.value||'').trim().toLowerCase();
+  const pass=(document.getElementById('ai-pass')?.value||'');
+  let ok=true;
+  if(!email){ markErr('ai-email','ae-email','Email is required'); ok=false; }
+  else if(!/\S+@\S+\.\S+/.test(email)){ markErr('ai-email','ae-email','Enter a valid email'); ok=false; }
+  if(!pass){ markErr('ai-pass','ae-pass','Password is required'); ok=false; }
+  if(!ok) return;
+  if(!users[email]){ markErr('ai-email','ae-email','No account found with this email'); return; }
+  if(users[email].password!==pass){ markErr('ai-pass','ae-pass','Incorrect password'); return; }
+  currentUser={name:users[email].name,email};
+  document.getElementById('auth-overlay').classList.remove('open');
+  showToast(`✅ Welcome back, ${currentUser.name.split(' ')[0]}!`);
+  if(pendingAction){ const fn=pendingAction; pendingAction=null; setTimeout(fn,400); }
+}
+function submitSignup(){
+  clearErr();
+  const name=(document.getElementById('ai-name')?.value||'').trim();
+  const email=(document.getElementById('ai-email')?.value||'').trim().toLowerCase();
+  const pass=(document.getElementById('ai-pass')?.value||'');
+  let ok=true;
+  if(!name){ markErr('ai-name','ae-name','Name is required'); ok=false; }
+  if(!email){ markErr('ai-email','ae-email','Email is required'); ok=false; }
+  else if(!/\S+@\S+\.\S+/.test(email)){ markErr('ai-email','ae-email','Enter a valid email'); ok=false; }
+  if(pass.length<6){ markErr('ai-pass','ae-pass','Minimum 6 characters'); ok=false; }
+  if(!ok) return;
+  if(users[email]){ markErr('ai-email','ae-email','Account already exists'); return; }
+  users[email]={name,password:pass};
+  currentUser={name,email};
+  document.getElementById('auth-overlay').classList.remove('open');
+  showToast(`🎉 Welcome, ${name.split(' ')[0]}!`);
+  if(pendingAction){ const fn=pendingAction; pendingAction=null; setTimeout(fn,400); }
+}
+function logOut(){ currentUser=null; closeBurger(); showToast('👋 Logged out'); }
+
+/* ════════════════════════════════
+   MY BOOKINGS + SAVED (shared overlay, mode-switched)
+════════════════════════════════ */
+function openBookings(mode='bookings'){
+  document.getElementById('bookings-title').textContent=mode==='bookings'?'My Bookings':'Saved';
+  renderBookingsContent(mode);
+  document.getElementById('bookings-overlay').classList.add('open');
+}
+function closeBookings(){ document.getElementById('bookings-overlay').classList.remove('open'); }
+
+function renderBookingsContent(mode){
+  const list=document.getElementById('bookings-list');
+  if(mode==='bookings'){
+    if(!myBookings.length){
+      list.innerHTML=`<div class="bookings-empty"><i class="ti ti-calendar-off"></i><span>No bookings yet.<br>Book a turf or rent equipment to see them here.</span></div>`;
+      return;
+    }
+    list.innerHTML=myBookings.map(b=>`
+      <div class="booking-card">
+        <div class="booking-icon">${b.emoji}</div>
+        <div class="booking-info">
+          <h4>${b.name.split(',')[0]}</h4>
+          <div class="meta">${b.detail}<br>${b.ts.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>
+        </div>
+        <span class="booking-badge ${b.badge}">${b.badge==='turf'?'Turf':'Equipment'}</span>
+      </div>`).join('');
+  } else {
+    // saved mode
+    const saved=getSavedItems();
+    if(!saved.length){
+      list.innerHTML=`<div class="bookings-empty"><i class="ti ti-bookmark-off"></i><span>Nothing saved yet.<br>Tap the bookmark icon on any reel to save it.</span></div>`;
+      return;
+    }
+    list.innerHTML=saved.map(item=>{
+      const isTurf=item.sport!==undefined;
+      return `<div class="booking-card">
+        <div class="booking-icon">${item.emoji}</div>
+        <div class="booking-info">
+          <h4>${item.name.split(',')[0]}</h4>
+          <div class="meta">${isTurf?item.sport:item.category}<br>${item.price}</div>
+        </div>
+        <span class="booking-badge ${isTurf?'turf':'equip'}">${isTurf?'Turf':'Equipment'}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+/* ════════════════════════════════
+   INIT
+════════════════════════════════ */
+buildReels(turfs,'turf-scroll','turf');
+buildReels(equips,'equip-scroll','equip');
+</script>
+</body>
+</html>
